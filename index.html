@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neon Termo</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+
+    <header>
+        <div class="header-top">
+            <button id="help-btn" class="icon-btn" title="Ajuda">?</button>
+            <h1>NEON TERMO</h1>
+            <button id="stats-btn" class="icon-btn" title="Estatísticas">📊</button>
+        </div>
+        <p>Decifre o código.</p>
+        <div class="mode-selector">
+            <button id="mode-termo" class="mode-btn active">TERMO</button>
+            <button id="mode-duetto" class="mode-btn">DUETTO</button>
+            <button id="mode-quarteto" class="mode-btn">QUARTETO</button>
+        </div>
+    </header>
+
+    <main class="game-container">
+
+        <div id="game-board-area" class="game-board-area">
+            <!-- Grids serão injetados aqui via JS -->
+        </div>
+
+        <div id="message-area" class="message-area"></div>
+
+        <div id="keyboard" class="keyboard">
+            <!-- Teclado gerado via JS -->
+        </div>
+
+        <div class="controls">
+            <button id="new-word-btn" class="btn-neon">NOVA PALAVRA</button>
+        </div>
+
+    </main>
+
+    <!-- Modal Estatísticas -->
+    <div id="stats-modal" class="modal hidden">
+        <div class="modal-content">
+            <span id="close-stats" class="close-btn">&times;</span>
+            <h2>ESTATÍSTICAS</h2>
+            <div id="stats-container" class="stats-grid">
+                <!-- Injetado via JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Ajuda -->
+    <div id="help-modal" class="modal hidden">
+        <div class="modal-content help-content">
+            <span id="close-help" class="close-btn">&times;</span>
+            <h2>COMO JOGAR</h2>
+            <p>Descubra a palavra certa em 6 tentativas (ou mais, dependendo do modo).</p>
+            <p>Depois de cada tentativa, as peças mostram o quão perto você está da solução.</p>
+
+            <div class="examples">
+                <div class="example-row">
+                    <div class="cell correct">T</div>
+                    <div class="cell">E</div>
+                    <div class="cell">R</div>
+                    <div class="cell">M</div>
+                    <div class="cell">O</div>
+                </div>
+                <p>A letra <strong>T</strong> faz parte da palavra e está na posição correta.</p>
+
+                <div class="example-row">
+                    <div class="cell">V</div>
+                    <div class="cell present">I</div>
+                    <div class="cell">O</div>
+                    <div class="cell">L</div>
+                    <div class="cell">A</div>
+                </div>
+                <p>A letra <strong>I</strong> faz parte da palavra mas em outra posição.</p>
+
+                <div class="example-row">
+                    <div class="cell">P</div>
+                    <div class="cell">U</div>
+                    <div class="cell absent">L</div>
+                    <div class="cell">G</div>
+                    <div class="cell">A</div>
+                </div>
+                <p>A letra <strong>L</strong> não faz parte da palavra.</p>
+            </div>
+
+            <p class="accent-note">Os acentos são preenchidos automaticamente.</p>
+        </div>
+    </div>
+
+    <button id="theme-toggle" class="theme-toggle-btn" title="Mudar Tema">🎨</button>
+
+    <script src="words.js"></script>
+    <script src="script.js"></script>
+</body>
+
+</html>

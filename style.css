@@ -1,0 +1,652 @@
+:root {
+    /* Tema Padrão: Neon Futurista */
+    --color-bg-dark: #0a0a12;
+    --color-bg-gradient: linear-gradient(135deg, #050505 0%, #1a0b2e 100%);
+
+    --color-primary: #b026ff;
+    /* Neon Purple */
+    --color-correct: #39ff14;
+    /* Neon Green */
+    --color-present: #fff01f;
+    /* Neon Yellow */
+    --color-accent: #00f3ff;
+    /* Neon Blue */
+
+    --color-text: #ffffff;
+    --color-text-dim: #666;
+
+    --cell-border: #444;
+    --cell-bg: rgba(255, 255, 255, 0.05);
+    --glow-strong: 0 0 10px, 0 0 20px;
+    --glow-weak: 0 0 5px;
+
+    --transition-speed: 0.4s;
+}
+
+body.theme-nature {
+    --color-bg-dark: #e8f5e9;
+    --color-bg-gradient: linear-gradient(135deg, #c8e6c9 0%, #a5d6a7 100%);
+
+    --color-primary: #2e7d32;
+    /* Forest Green */
+    --color-correct: #689f38;
+    /* Leaf Green */
+    --color-present: #fbc02d;
+    /* Sun Yellow */
+    --color-accent: #5d4037;
+    /* Bark Brown */
+
+    --color-text: #1b5e20;
+    --color-text-dim: #455a64;
+
+    --cell-border: #81c784;
+    --cell-bg: rgba(255, 255, 255, 0.4);
+    --glow-strong: 0 4px 6px rgba(0, 0, 0, 0.1);
+    --glow-weak: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+body.theme-retro {
+    --color-bg-dark: #2d1b4b;
+    --color-bg-gradient: linear-gradient(180deg, #ff7e5f 0%, #feb47b 50%, #86377b 100%);
+
+    --color-primary: #ff00ff;
+    /* Hot Pink */
+    --color-correct: #00ff00;
+    /* Matrix Green */
+    --color-present: #ffaa00;
+    /* Sunset Orange */
+    --color-accent: #00ccff;
+    /* Cyan */
+
+    --color-text: #ffffff;
+    --color-text-dim: #ccc;
+
+    --cell-border: #5d3f8c;
+    --cell-bg: rgba(0, 0, 0, 0.3);
+    --glow-strong: 0 0 15px rgba(255, 0, 255, 0.6);
+    --glow-weak: 0 0 8px rgba(0, 255, 255, 0.4);
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    user-select: none;
+    /* Evitar seleção de texto ao clicar rápido */
+}
+
+body {
+    font-family: 'Orbitron', monospace;
+    /* Fonte sci-fi */
+    background: var(--color-bg-dark);
+    background-image: var(--color-bg-gradient);
+    color: var(--color-text);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    transition: background var(--transition-speed) ease, color var(--transition-speed) ease;
+}
+
+header {
+    margin-bottom: 1rem;
+    text-align: center;
+}
+
+header h1 {
+    font-size: 3rem;
+    color: transparent;
+    -webkit-text-stroke: 1px var(--color-primary);
+    text-shadow: var(--glow-strong) var(--color-primary);
+    letter-spacing: 4px;
+    transition: all var(--transition-speed) ease;
+}
+
+header p {
+    color: var(--color-accent);
+    font-size: 0.9rem;
+    letter-spacing: 2px;
+    text-shadow: var(--glow-weak) var(--color-accent);
+    transition: all var(--transition-speed) ease;
+}
+
+.game-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+/* --- Grade --- */
+.grid-container {
+    display: grid;
+    gap: 8px;
+    padding: 10px;
+}
+
+.row {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 8px;
+}
+
+.cell {
+    width: 55px;
+    height: 55px;
+    border: 2px solid var(--cell-border);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 2rem;
+    font-weight: bold;
+    color: var(--color-text);
+    background-color: var(--cell-bg);
+    cursor: pointer;
+    transition: all var(--transition-speed) ease;
+    border-radius: 4px;
+    text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+}
+
+.cell:hover {
+    border-color: var(--color-primary);
+    box-shadow: var(--glow-weak) var(--color-primary);
+}
+
+/* Célula Ativa (Foco) */
+.cell.active {
+    border-color: var(--color-primary);
+    box-shadow: var(--glow-strong) var(--color-primary);
+    background-color: rgba(176, 38, 255, 0.1);
+    transform: scale(1.05);
+    z-index: 10;
+}
+
+/* Cores de Resultado */
+.cell.correct {
+    background-color: rgba(57, 255, 20, 0.2);
+    border-color: var(--color-correct);
+    color: var(--color-correct);
+    text-shadow: var(--glow-strong) var(--color-correct);
+    box-shadow: inset 0 0 10px var(--color-correct);
+}
+
+.cell.present {
+    background-color: rgba(255, 240, 31, 0.2);
+    border-color: var(--color-present);
+    color: var(--color-present);
+    text-shadow: var(--glow-strong) var(--color-present);
+    box-shadow: inset 0 0 10px var(--color-present);
+}
+
+.cell.absent {
+    background-color: rgba(255, 255, 255, 0.02);
+    border-color: #333;
+    color: #555;
+    text-shadow: none;
+}
+
+/* --- Teclado --- */
+.keyboard {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: center;
+    width: 100%;
+    max-width: 600px;
+    padding: 0 10px;
+}
+
+.kb-row {
+    display: flex;
+    gap: 6px;
+    justify-content: center;
+    width: 100%;
+}
+
+.key {
+    background-color: #222;
+    color: #fff;
+    border: 1px solid #444;
+    border-radius: 4px;
+    padding: 10px;
+    min-width: 35px;
+    height: 50px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 1rem;
+    transition: all 0.2s;
+    text-transform: uppercase;
+}
+
+.key.big {
+    min-width: 60px;
+    font-size: 0.8rem;
+}
+
+.key:hover {
+    background-color: #333;
+    border-color: #666;
+}
+
+/* Tecla Neutra (Padrão ao iniciar) */
+.key.key-neon {
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+    box-shadow: var(--glow-weak) var(--color-primary);
+    background-color: rgba(176, 38, 255, 0.1);
+    opacity: 1;
+}
+
+.key.key-neon:hover {
+    background-color: var(--color-primary);
+    color: #000;
+    box-shadow: var(--glow-strong) var(--color-primary);
+}
+
+/* Status das teclas após jogar - Prioridade de Cores */
+.key.used-correct {
+    background-color: var(--color-correct) !important;
+    color: #000 !important;
+    border-color: var(--color-correct) !important;
+    box-shadow: var(--glow-weak) var(--color-correct) !important;
+    opacity: 1 !important;
+}
+
+.key.used-present {
+    background-color: var(--color-present) !important;
+    color: #000 !important;
+    border-color: var(--color-present) !important;
+    box-shadow: var(--glow-weak) var(--color-present) !important;
+    opacity: 1 !important;
+}
+
+.key.used-absent {
+    background-color: transparent !important;
+    border-color: #333 !important;
+    color: #444 !important;
+    box-shadow: none !important;
+    opacity: 0.5;
+    /* Escurece a tecla */
+    transform: scale(0.95);
+}
+
+
+/* --- Mensagens & Botões --- */
+.message-area {
+    min-height: 2rem;
+    font-size: 1.2rem;
+    text-align: center;
+    color: var(--color-accent);
+    text-shadow: var(--glow-weak) var(--color-accent);
+    font-weight: bold;
+    transition: all var(--transition-speed) ease;
+}
+
+.controls {
+    margin-top: 1rem;
+}
+
+.btn-neon {
+    background: transparent;
+    color: var(--color-primary);
+    border: 2px solid var(--color-primary);
+    padding: 10px 20px;
+    font-size: 1rem;
+    font-family: 'Orbitron', monospace;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    box-shadow: var(--glow-weak) var(--color-primary);
+    transition: all var(--transition-speed) ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-neon:hover {
+    background: var(--color-primary);
+    color: #000;
+    box-shadow: var(--glow-strong) var(--color-primary);
+}
+
+/* --- Header Controls --- */
+.header-top {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+    margin-bottom: 0.5rem;
+}
+
+.icon-btn {
+    background: transparent;
+    border: none;
+    color: var(--color-text-dim);
+    font-size: 1.5rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.icon-btn:hover {
+    color: var(--color-accent);
+    text-shadow: var(--glow-weak) var(--color-accent);
+    transform: scale(1.1);
+}
+
+.help-content {
+    text-align: left;
+    max-width: 500px;
+}
+
+.help-content p {
+    margin-bottom: 1rem;
+    font-size: 0.95rem;
+    line-height: 1.5;
+}
+
+.examples {
+    border-top: 1px solid var(--cell-border);
+    border-bottom: 1px solid var(--cell-border);
+    padding: 1rem 0;
+    margin: 1rem 0;
+}
+
+.example-row {
+    display: flex;
+    gap: 5px;
+    margin-bottom: 0.5rem;
+}
+
+.example-row .cell {
+    width: 40px;
+    height: 40px;
+    font-size: 1.5rem;
+}
+
+.accent-note {
+    font-size: 0.8rem;
+    color: var(--color-text-dim);
+    text-align: center;
+    margin-top: 1rem;
+}
+
+/* --- Responsiveness --- */
+@media (max-width: 768px) {
+    .game-board-area {
+        gap: 10px;
+    }
+
+    /* Ajuste para Quarteto em Tablets/Mobile */
+    .grid-quarteto {
+        grid-template-columns: repeat(2, 1fr);
+        /* 2x2 em telas médias */
+        overflow-x: hidden;
+    }
+}
+
+@media (max-width: 480px) {
+    header h1 {
+        font-size: 2rem;
+    }
+
+    .cell {
+        width: 45px;
+        height: 45px;
+        font-size: 1.5rem;
+    }
+
+    .grid-container {
+        gap: 4px;
+        padding: 5px;
+    }
+
+    .row {
+        gap: 4px;
+    }
+
+    /* Teclado Compacto */
+    .keyboard {
+        padding: 0 2px;
+        gap: 4px;
+    }
+
+    .kb-row {
+        gap: 3px;
+    }
+
+    .key {
+        padding: 0;
+        min-width: 8%;
+        /* % para caber na tela */
+        height: 45px;
+        font-size: 0.9rem;
+        flex: 1;
+    }
+
+    .key.big {
+        min-width: 12%;
+        font-size: 0.7rem;
+        /* Ícone apagar menor */
+    }
+
+    /* Modo Quarteto Mobile (1 coluna ou scroll) */
+    .grid-quarteto {
+        grid-template-columns: 1fr 1fr;
+        /* Mantém 2 colunas mas escala */
+        transform-origin: top center;
+    }
+
+    /* Scale massivo para caber quarteto */
+    .grid-quarteto .grid-container {
+        transform: scale(0.65);
+        margin: -25px;
+    }
+
+    /* Stats/Help Modal */
+    .modal-content {
+        padding: 1.5rem;
+        width: 95%;
+    }
+}
+
+/* --- Mode Selector --- */
+.mode-selector {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.mode-btn {
+    background: transparent;
+    color: var(--color-text-dim);
+    border: 1px solid var(--color-text-dim);
+    padding: 5px 10px;
+    font-family: 'Orbitron', monospace;
+    cursor: pointer;
+    font-size: 0.8rem;
+    transition: all 0.3s;
+}
+
+.mode-btn:hover {
+    color: var(--color-accent);
+    border-color: var(--color-accent);
+}
+
+.mode-btn.active {
+    color: var(--color-bg-dark);
+    background-color: var(--color-accent);
+    border-color: var(--color-accent);
+    box-shadow: var(--glow-weak) var(--color-accent);
+    font-weight: bold;
+}
+
+/* --- Game Board Area --- */
+.game-board-area {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    flex-wrap: wrap;
+    max-width: 1200px;
+}
+
+/* Layout Duetto (2 colunas) */
+.grid-duetto .grid-container {
+    transform: scale(0.9);
+}
+
+/* Layout Quarteto (4 colunas lado a lado) */
+.grid-quarteto {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    width: 100%;
+    overflow-x: auto;
+    /* Garante scroll se necessário em telas muito pequenas */
+}
+
+.grid-quarteto .grid-container {
+    transform: scale(0.75);
+    margin: -20px;
+    /* Compensa o scale */
+}
+
+/* Grid Fechado (Ganha/Perde) */
+.grid-container.finished {
+    opacity: 0.5;
+    pointer-events: none;
+}
+
+/* --- Modal Stats --- */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    backdrop-filter: blur(5px);
+}
+
+.modal.hidden {
+    display: none;
+}
+
+.modal-content {
+    background: #1a0b2e;
+    border: 2px solid var(--color-neon-purple);
+    padding: 2rem;
+    border-radius: 10px;
+    text-align: center;
+    box-shadow: 0 0 20px rgba(176, 38, 255, 0.4);
+    position: relative;
+    max-width: 90%;
+    width: 400px;
+}
+
+.close-btn {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: var(--color-text-dim);
+}
+
+.close-btn:hover {
+    color: #fff;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    /* Duas colunas */
+    gap: 15px;
+    margin-top: 1rem;
+    text-align: left;
+}
+
+.stat-item {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 10px;
+    border-radius: 5px;
+    text-align: center;
+}
+
+.stat-value {
+    display: block;
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: var(--color-correct);
+}
+
+.stat-label {
+    font-size: 0.8rem;
+    color: var(--color-text-dim);
+}
+
+/* --- Theme Toggle Button --- */
+.theme-toggle-btn {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background-color: var(--color-primary);
+    color: #fff;
+    border: none;
+    font-size: 1.8rem;
+    cursor: pointer;
+    box-shadow: var(--glow-strong) var(--color-primary);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+    transition: all var(--transition-speed) ease;
+}
+
+.theme-toggle-btn:hover {
+    transform: scale(1.1) rotate(15deg);
+    box-shadow: 0 0 20px var(--color-primary);
+}
+
+/* --- Theme Adjustments --- */
+body.theme-nature .cell.absent,
+body.theme-nature .key.used-absent {
+    color: #999 !important;
+    border-color: #ccc !important;
+}
+
+body.theme-nature .cell,
+body.theme-nature .key {
+    text-shadow: none;
+}
+
+body.theme-nature .key.key-neon {
+    color: #fff;
+    background-color: var(--color-primary);
+}
+
+body.theme-nature .modal-content {
+    background-color: #f1f8e9;
+    border-color: var(--color-primary);
+    color: var(--color-text);
+}
+
+body.theme-nature .close-btn {
+    color: var(--color-text-dim);
+}
+
+body.theme-retro header h1 {
+    -webkit-text-stroke: 1px #fff;
+    text-shadow: 3px 3px 0px var(--color-primary);
+}
