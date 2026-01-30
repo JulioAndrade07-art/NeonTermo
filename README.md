@@ -157,7 +157,7 @@ Atualização de Estado
 ---
 
 
-##🔧 Script de Palavras (filter_words.py)
+## 🔧 Script de Palavras (filter_words.py)
 
 Processa dicionários em português e gera listas de palavras válidas com 5 letras.
 
