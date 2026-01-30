@@ -208,7 +208,7 @@ Processa dicionários em português e gera listas de palavras válidas com 5 let
 - Modo hard
 ---
 
-##📄 Licença
+## 📄 Licença
 
 Projeto educacional/pessoal, livre para estudo e aprendizado.
 ---
