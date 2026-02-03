@@ -135,6 +135,7 @@ document.addEventListener('DOMContentLoaded', () => {
             this.currentGuess = new Array(5).fill("");
             this.cursorCol = 0;
             this.isGameOver = false;
+            this.playedGuesses = []; // Armazena histórico ordenado de chutes
 
             // Elementos DOM
             this.boardArea = document.getElementById('game-board-area');
@@ -156,6 +157,13 @@ document.addEventListener('DOMContentLoaded', () => {
         start() {
             if (!globalWords || globalWords.length === 0) {
                 this.showMessage("ERRO: Palavras não carregadas.");
+                return;
+            }
+
+            // Tenta carregar estado salvo ANTES de resetar
+            if (this.loadGameState()) {
+                console.log(`Estado recuperado para ${currentMode} (${this.isDailyMode ? 'Diário' : 'Treino'})`);
+                // Se carregou com sucesso, não reseta nem gera novas palavras
                 return;
             }
 
@@ -196,6 +204,7 @@ document.addEventListener('DOMContentLoaded', () => {
             this.currentGuess = new Array(5).fill("");
             this.cursorCol = 0;
             this.isGameOver = false;
+            this.playedGuesses = [];
             this.boardArea.innerHTML = '';
             this.messageArea.textContent = "";
             this.attemptsHistory = new Set();
@@ -205,6 +214,170 @@ document.addEventListener('DOMContentLoaded', () => {
                 this.hiddenInput.blur();
             }
         }
+
+        // --- Persistência de Estado ---
+
+        getSaveKey() {
+            const type = this.isDailyMode ? 'daily' : 'practice';
+            return `termo_state_v2_${currentMode}_${type}`;
+        }
+
+        saveGameState() {
+            if (!this.isDailyMode) return;
+
+            const state = {
+                date: new Date().toLocaleDateString('pt-BR'),
+                currentRow: this.currentRow,
+                currentGuess: this.currentGuess,
+                attemptsHistory: Array.from(this.attemptsHistory),
+                isGameOver: this.isGameOver,
+                playedGuesses: this.playedGuesses, // Save correctly
+                boards: this.activeBoards.map(b => ({
+                    id: b.id,
+                    secretWord: b.secretWord,
+                    isSolved: b.isSolved
+                }))
+            };
+            localStorage.setItem(this.getSaveKey(), JSON.stringify(state));
+        }
+
+        loadGameState() {
+            const key = this.getSaveKey();
+            const savedJson = localStorage.getItem(key);
+            if (!savedJson) return false;
+
+            try {
+                const state = JSON.parse(savedJson);
+
+                if (this.isDailyMode) {
+                    const today = new Date().toLocaleDateString('pt-BR');
+                    if (state.date !== today) {
+                        console.log("Estado salvo de data anterior. Resetando.");
+                        localStorage.removeItem(key);
+                        return false;
+                    }
+                }
+
+                this.reset();
+                const config = MODES[currentMode];
+                this.boardArea.className = `game-board-area ${config.containerClass}`;
+                if (currentMode === 'quarteto') this.boardArea.classList.add('grid-quarteto');
+
+                // Restore non-replayable state first
+                this.isGameOver = state.isGameOver;
+                this.attemptsHistory = new Set(state.attemptsHistory);
+                this.playedGuesses = state.playedGuesses || [];
+
+                // 1. Instantiate Boards (fresh)
+                state.boards.forEach(bData => {
+                    const board = new TermoBoard(bData.id, bData.secretWord, config.attempts, this);
+                    // Do NOT set isSolved yet, replay will do it
+                    this.activeBoards.push(board);
+                    this.boardArea.appendChild(board.element);
+                });
+
+                // 2. Replay Turns
+                this.currentRow = 0; // Start fresh for replay
+                const allTurnResults = [];
+
+                this.playedGuesses.forEach(guess => {
+                    const turnResults = [];
+                    this.activeBoards.forEach(board => {
+                        if (!board.isSolved) {
+                            // FIX: Visual Restoration - set text content
+                            const rowEl = board.element.querySelector(`.row[data-row="${this.currentRow}"]`);
+                            if (rowEl) {
+                                Array.from(rowEl.children).forEach((cell, i) => {
+                                    cell.textContent = guess[i];
+                                });
+                            }
+
+                            const result = board.submitGuess(guess);
+                            if (result) turnResults.push(...result);
+                        }
+                    });
+                    allTurnResults.push(...turnResults);
+                    this.currentRow++; // Increment row for next guess
+                });
+
+                // 3. Restore final numeric state (just to be safe, should match)
+                this.currentRow = state.currentRow;
+                // Note: The loop increments currentRow. If code matches, it ends at same value.
+                // If game was over, currentRow might be different? 
+                // In submitRow: if (allSolved) returns early (no currentRow++).
+                // If maxAttempts, currentRow++ happens then (currentRow >= maxAttempts).
+                // So looping playedGuesses increments currentRow for every guess.
+                // Does this match Saved Row?
+                // Saved Row is incremented in submitRow.
+                // If Win: submitRow -> allSolved -> return. currentRow NOT incremented for that winning turn?
+                // Wait. 
+                // `submitRow` logic: 
+                //    ... processing ...
+                //    if (allSolved) return; (currentRow NOT changed)
+                //    currentRow++;
+
+                // So if I win on turn 1 (index 0), playedGuesses has 1 item.
+                // Loop runs once. currentRow becomes 1.
+                // Saved currentRow was 0.
+                // So my replay loop will effectively set currentRow to 1.
+                // This is a mismatch IF I just rely on loop.
+                // BUT, `updateActiveRow` uses `currentRow`.
+                // If I am replaying, I want `submitGuess` to target `row=0`.
+                // So:
+                // Loop 0: currentRow=0. submitGuess(uses row 0). currentRow++.
+                // Correct.
+
+                // Update Keyboard
+                this.renderKeyboard();
+                setTimeout(() => this.updateKeyboard(allTurnResults), 50);
+
+                // Restore current input
+                if (state.currentGuess) {
+                    this.currentGuess = state.currentGuess;
+                    this.cursorCol = state.currentGuess.findIndex(c => c === "") === -1 ? 5 : state.currentGuess.findIndex(c => c === "");
+                    if (this.cursorCol === -1) this.cursorCol = 5;
+                    if (this.cursorCol > 4) this.cursorCol = 4;
+
+                    // IF game not over, we show the partial guess on the NEXT row?
+                    // activeBoards uses this.controller.currentRow.
+                    // If my loop incremented currentRow one step too far for a Win case?
+                    // If Win: playedGuesses=1. Loop sets currentRow=1.
+                    // But active boards are solved, so updateActiveRow does nothing.
+                    // If NOT Win: playedGuesses=1. Loop sets currentRow=1.
+                    // updateActiveRow acts on row 1. Correct.
+
+                    this.updateAllBoardsActiveRow();
+                }
+
+                // Force Visual Solved State if needed
+                state.boards.forEach((bData, i) => {
+                    if (bData.isSolved) {
+                        this.activeBoards[i].isSolved = true;
+                        this.activeBoards[i].element.classList.add('finished');
+                    }
+                });
+
+                if (this.isGameOver) {
+                    setTimeout(() => {
+                        const failedWords = this.activeBoards.filter(b => !b.isSolved).map(b => b.secretWord).join(", ");
+                        if (failedWords) {
+                            this.showMessage(`FIM DE JOGO: ${failedWords}`, false);
+                        } else {
+                            this.showMessage("VITÓRIA! 🏆", true);
+                        }
+                        this.showStats();
+                    }, 500);
+                }
+
+                this.focusInput();
+                return true;
+
+            } catch (e) {
+                console.error("Erro ao carregar save:", e);
+                return false;
+            }
+        }
+
 
         getRandomWord() {
             return globalWords[Math.floor(Math.random() * globalWords.length)];
@@ -325,6 +498,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
             this.attemptsHistory.add(finalGuessStr);
+            this.playedGuesses.push(finalGuessStr); // Save guess history
 
             const turnResults = [];
             let allSolved = true;
@@ -345,6 +519,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (allSolved) {
                 this.isGameOver = true;
+                this.saveGameState(); // Save Win State
                 if (this.hiddenInput) this.hiddenInput.blur(); // Fecha teclado
                 setTimeout(() => {
                     this.showMessage("VITÓRIA! 🏆", true);
@@ -359,6 +534,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (this.currentRow >= maxAttempts) {
                 this.isGameOver = true;
+                this.saveGameState(); // Save Loss State
                 if (this.hiddenInput) this.hiddenInput.blur();
                 setTimeout(() => {
                     const failedWords = this.activeBoards
@@ -373,6 +549,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 this.currentGuess = new Array(5).fill("");
                 this.cursorCol = 0;
                 this.updateAllBoardsActiveRow(); // Limpa visual da nova linha
+                this.saveGameState(); // Save Progress
                 this.focusInput(); // Mantém teclado
             }
         }
