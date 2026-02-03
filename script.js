@@ -42,6 +42,14 @@ document.addEventListener('DOMContentLoaded', () => {
                     cell.className = 'cell';
                     cell.dataset.row = r;
                     cell.dataset.col = c;
+
+                    // Click para focar
+                    const colIndex = c;
+                    cell.addEventListener('click', (e) => {
+                        e.stopPropagation(); // Evita bolha indesejada
+                        this.controller.setCursor(colIndex);
+                    });
+
                     row.appendChild(cell);
                 }
                 container.appendChild(row);
@@ -124,7 +132,7 @@ document.addEventListener('DOMContentLoaded', () => {
         constructor() {
             this.activeBoards = [];
             this.currentRow = 0;
-            this.currentGuess = new Array(5).fill(""); // Buffer agora é array
+            this.currentGuess = new Array(5).fill("");
             this.cursorCol = 0;
             this.isGameOver = false;
 
@@ -133,6 +141,7 @@ document.addEventListener('DOMContentLoaded', () => {
             this.keyboardDiv = document.getElementById('keyboard');
             this.messageArea = document.getElementById('message-area');
             this.newWordBtn = document.getElementById('new-word-btn');
+            this.hiddenInput = document.getElementById('hidden-input'); // Novo input
 
             // Modal Stats
             this.statsModal = document.getElementById('stats-modal');
@@ -151,7 +160,7 @@ document.addEventListener('DOMContentLoaded', () => {
             this.reset();
             const config = MODES[currentMode];
             this.boardArea.className = `game-board-area ${config.containerClass}`;
-            if (currentMode === 'quarteto') this.boardArea.classList.add('grid-quarteto'); // Auxiliar layout
+            if (currentMode === 'quarteto') this.boardArea.classList.add('grid-quarteto');
 
             // Criar Boards
             for (let i = 0; i < config.grids; i++) {
@@ -159,10 +168,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 const board = new TermoBoard(i, secretWord, config.attempts, this);
                 this.activeBoards.push(board);
                 this.boardArea.appendChild(board.element);
-                console.log(`Board ${i} Target: ${secretWord}`); // Debug
+                console.log(`Board ${i} Target: ${secretWord}`);
             }
 
             this.renderKeyboard();
+            this.focusInput();
         }
 
         reset() {
@@ -175,14 +185,38 @@ document.addEventListener('DOMContentLoaded', () => {
             this.messageArea.textContent = "";
             this.attemptsHistory = new Set();
             this.closeStats();
+            if (this.hiddenInput) {
+                this.hiddenInput.value = "";
+                this.hiddenInput.blur();
+            }
         }
 
         getRandomWord() {
             return globalWords[Math.floor(Math.random() * globalWords.length)];
         }
 
+        // Foca no input oculto para abrir teclado mobile
+        focusInput() {
+            if (this.hiddenInput && !this.isModalOpen() && !this.isGameOver) {
+                this.hiddenInput.focus({ preventScroll: true });
+            }
+        }
+
+        // Define a coluna ativa baseado no clique
+        setCursor(colIndex) {
+            if (this.isGameOver) return;
+
+            // Permite navegar para qualquer coluna
+            if (colIndex >= 0 && colIndex < 5) {
+                this.cursorCol = colIndex;
+                this.updateAllBoardsActiveRow();
+                this.focusInput();
+            }
+        }
+
         handleInput(key) {
             if (this.isGameOver) return;
+            key = key.toUpperCase();
 
             if (key === 'ENTER') {
                 this.submitRow();
@@ -191,8 +225,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (key === 'BACKSPACE') {
                 if (this.currentGuess[this.cursorCol]) {
+                    // Se tem letra, apaga
                     this.currentGuess[this.cursorCol] = "";
                 } else if (this.cursorCol > 0) {
+                    // Se vazio e não é a primeira, volta e apaga
                     this.cursorCol--;
                     this.currentGuess[this.cursorCol] = "";
                 }
@@ -201,18 +237,12 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             if (key === 'ARROWLEFT') {
-                if (this.cursorCol > 0) {
-                    this.cursorCol--;
-                    this.updateAllBoardsActiveRow();
-                }
+                if (this.cursorCol > 0) this.setCursor(this.cursorCol - 1);
                 return;
             }
 
             if (key === 'ARROWRIGHT') {
-                if (this.cursorCol < 4) {
-                    this.cursorCol++;
-                    this.updateAllBoardsActiveRow();
-                }
+                if (this.cursorCol < 4) this.setCursor(this.cursorCol + 1);
                 return;
             }
 
@@ -234,44 +264,38 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         submitRow() {
-            // Converte array para string para validação
             const guessStr = this.currentGuess.join("");
 
             if (guessStr.length !== 5 || this.currentGuess.includes("")) {
                 this.showMessage("DIGITE 5 LETRAS");
+                this.focusInput(); // Mantém foco
                 return;
             }
 
-            // Normalização para aceitar palavras sem acento
             const normalize = (str) => str.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
             const normalizedGuess = normalize(guessStr);
-
-            // Tenta encontrar a palavra na lista original (com ou sem acento)
-            // A busca compara a versão normalizada da lista com a entrada normalizada
             const targetWord = globalWords.find(w => normalize(w) === normalizedGuess);
 
             if (!targetWord) {
                 this.showMessage("PALAVRA INEXISTENTE");
+                this.focusInput();
                 return;
             }
 
-            // Se encontrou, atualiza o palpite atual com a palavra correta (acentuada)
-            // Isso garante que os acentos apareçam no tabuleiro
             if (targetWord !== guessStr) {
                 this.currentGuess = targetWord.split("");
-                this.updateAllBoardsActiveRow(); // Atualiza visualmente imediatamente
+                this.updateAllBoardsActiveRow();
             }
 
-            // Usa a palavra alvo correta para a lógica de jogo
             const finalGuessStr = targetWord;
 
             if (this.attemptsHistory.has(finalGuessStr)) {
                 this.showMessage("PALAVRA JÁ UTILIZADA");
+                this.focusInput();
                 return;
             }
             this.attemptsHistory.add(finalGuessStr);
 
-            // Coletar resultados de todos os boards ativos
             const turnResults = [];
             let allSolved = true;
 
@@ -279,24 +303,22 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (!board.isSolved) {
                     const result = board.submitGuess(finalGuessStr);
                     if (result) {
-                        turnResults.push(...result); // Coleta status de cada letra
+                        turnResults.push(...result);
                     }
                     if (!board.isSolved) allSolved = false;
                 }
             });
 
-            // Atualizar Teclado (Melhor status entre todos os boards ativos)
-            // Espera animação (500ms)
             setTimeout(() => {
                 this.updateKeyboard(turnResults);
             }, 500);
 
-            // Checar Fim de Jogo
             if (allSolved) {
                 this.isGameOver = true;
+                if (this.hiddenInput) this.hiddenInput.blur(); // Fecha teclado
                 setTimeout(() => {
                     this.showMessage("VITÓRIA! 🏆", true);
-                    this.updateStats(true);
+                    this.updateStats(true, this.currentRow + 1); // Passa tentativas usadas
                     this.showStats();
                 }, 600);
                 return;
@@ -307,8 +329,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (this.currentRow >= maxAttempts) {
                 this.isGameOver = true;
+                if (this.hiddenInput) this.hiddenInput.blur();
                 setTimeout(() => {
-                    // Revelar palavras não resolvidas
                     const failedWords = this.activeBoards
                         .filter(b => !b.isSolved)
                         .map(b => b.secretWord)
@@ -320,7 +342,8 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                 this.currentGuess = new Array(5).fill("");
                 this.cursorCol = 0;
-                // Foca na próxima linha (se o board não estiver resolvido, updateActiveRow lidará com isso)
+                this.updateAllBoardsActiveRow(); // Limpa visual da nova linha
+                this.focusInput(); // Mantém teclado
             }
         }
 
@@ -401,53 +424,113 @@ document.addEventListener('DOMContentLoaded', () => {
         // --- Stats ---
 
         getStats() {
-            const saved = localStorage.getItem('termostats');
+            const saved = localStorage.getItem('termostats_v2'); // Mudando chave para evitar conflito com formato antigo
             return saved ? JSON.parse(saved) : {
-                termo: { played: 0, wins: 0, streak: 0, maxStreak: 0 },
-                duetto: { played: 0, wins: 0, streak: 0, maxStreak: 0 },
-                quarteto: { played: 0, wins: 0, streak: 0, maxStreak: 0 }
+                termo: { played: 0, wins: 0, streak: 0, maxStreak: 0, distribution: [0, 0, 0, 0, 0, 0], failures: 0 },
+                duetto: { played: 0, wins: 0, streak: 0, maxStreak: 0, distribution: [0, 0, 0, 0, 0, 0, 0], failures: 0 }, // Duetto tem 7 chances
+                quarteto: { played: 0, wins: 0, streak: 0, maxStreak: 0, distribution: [0, 0, 0, 0, 0, 0, 0, 0, 0], failures: 0 } // Quarteto tem 9
             };
         }
 
-        updateStats(isWin) {
+        updateStats(isWin, attemptsUsed) {
             const stats = this.getStats();
             const modeStats = stats[currentMode];
+
+            // Garantir que distribution existe (para migração)
+            if (!modeStats.distribution) {
+                const attemptCount = MODES[currentMode].attempts;
+                modeStats.distribution = new Array(attemptCount).fill(0);
+            }
 
             modeStats.played++;
             if (isWin) {
                 modeStats.wins++;
                 modeStats.streak++;
                 if (modeStats.streak > modeStats.maxStreak) modeStats.maxStreak = modeStats.streak;
+
+                // Distribuição (attemptsUsed é 1-indexed)
+                if (attemptsUsed > 0 && attemptsUsed <= modeStats.distribution.length) {
+                    modeStats.distribution[attemptsUsed - 1]++;
+                }
             } else {
                 modeStats.streak = 0;
+                modeStats.failures++;
             }
 
-            localStorage.setItem('termostats', JSON.stringify(stats));
+            localStorage.setItem('termostats_v2', JSON.stringify(stats));
         }
 
         showStats() {
             const stats = this.getStats();
             const s = stats[currentMode];
+
+            // Safety check para renderização
+            if (!s.distribution) {
+                const attemptCount = MODES[currentMode].attempts;
+                s.distribution = new Array(attemptCount).fill(0);
+            }
+
             const winPct = s.played === 0 ? 0 : Math.round((s.wins / s.played) * 100);
 
-            this.statsContainer.innerHTML = `
-                <div class="stat-item">
-                    <span class="stat-value">${s.played}</span>
-                    <span class="stat-label">JOGOS</span>
+            // Calcular max para barras
+            const maxVal = Math.max(...s.distribution, s.failures, 1); // evita div por 0
+
+            // Gerar HTML de resumo
+            let html = `
+                <h2>Estatísticas</h2>
+                <div class="stats-group">
+                    <div class="stat-box">
+                        <span class="stat-number">${s.played}</span>
+                        <span class="stat-label">jogos</span>
+                    </div>
+                    <div class="stat-box">
+                        <span class="stat-number">${winPct}%</span>
+                        <span class="stat-label">de vitórias</span>
+                    </div>
+                    <div class="stat-box">
+                        <span class="stat-number">${s.streak}</span>
+                        <span class="stat-label">sequência atual</span>
+                    </div>
+                    <div class="stat-box">
+                        <span class="stat-number">${s.maxStreak}</span>
+                        <span class="stat-label">melhor sequência</span>
+                    </div>
                 </div>
-                <div class="stat-item">
-                    <span class="stat-value">${winPct}%</span>
-                    <span class="stat-label">% VITÓRIAS</span>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-value">${s.streak}</span>
-                    <span class="stat-label">SEQUÊNCIA</span>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-value">${s.maxStreak}</span>
-                    <span class="stat-label">MELHOR SEQ.</span>
-                </div>
+                
+                <h3 class="distribution-title">Distribuição de Vitórias</h3>
+                <div class="distribution-chart">
             `;
+
+            // Gerar Barras (1 até MaxTentativas)
+            s.distribution.forEach((count, idx) => {
+                const width = Math.max(8, (count / maxVal) * 100);
+                const bgClass = count > 0 ? "filled" : "";
+                html += `
+                    <div class="chart-row">
+                        <span class="chart-label">${idx + 1}</span>
+                        <div class="chart-bar-container">
+                            <div class="chart-bar ${bgClass}" style="width: ${width}%">${count}</div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            // Barra de Falhas (Caveira)
+            if (s.failures > 0) {
+                const width = Math.max(8, (s.failures / maxVal) * 100);
+                html += `
+                    <div class="chart-row">
+                         <span class="chart-label skull-icon">💀</span>
+                         <div class="chart-bar-container">
+                             <div class="chart-bar filled" style="width: ${width}%; background-color: #ff3333;">${s.failures}</div>
+                         </div>
+                    </div>
+                 `;
+            }
+
+            html += `</div>`; // Fechar chart-container
+
+            this.statsContainer.innerHTML = html;
             this.statsModal.classList.remove('hidden');
         }
 
@@ -491,17 +574,71 @@ document.addEventListener('DOMContentLoaded', () => {
                     return;
                 }
 
-                if (this.isModalOpen()) return; // Bloqueia input se modal aberto
+                if (this.isModalOpen()) return;
 
+                // Atalhos de teclado físico
                 if (key === 'ARROWLEFT' || key === 'ARROWRIGHT') {
                     this.handleInput(key);
-                } else if (key.length === 1 && key >= 'A' && key <= 'Z') this.handleInput(key);
-                else if (key === 'BACKSPACE' || key === 'ENTER') this.handleInput(key);
+                } else if (key.length === 1 && key >= 'A' && key <= 'Z') {
+                    // SE o input oculto estiver focado, deixa o evento 'input' lidar com isso
+                    // para evitar duplicidade. Se NÃO estiver focado, trata aqui.
+                    if (document.activeElement !== this.hiddenInput) {
+                        this.handleInput(key);
+                        this.focusInput();
+                    }
+                }
+                else if (key === 'BACKSPACE' || key === 'ENTER') {
+                    if (document.activeElement !== this.hiddenInput) {
+                        this.handleInput(key);
+                        this.focusInput();
+                    }
+                }
             });
+
+            // Input Oculto (Mobile)
+            if (this.hiddenInput) {
+                this.hiddenInput.addEventListener('input', (e) => {
+                    e.preventDefault();
+                    if (this.isModalOpen() || this.isGameOver) {
+                        this.hiddenInput.value = "";
+                        return;
+                    }
+
+                    const val = (e.data || this.hiddenInput.value).toUpperCase();
+                    // Processa último char digitado
+                    if (val && val.length > 0) {
+                        const char = val.slice(-1); // Pega último
+                        if (/[A-Z]/.test(char)) {
+                            this.handleInput(char);
+                        }
+                    }
+
+                    // Limpa buffer
+                    setTimeout(() => {
+                        this.hiddenInput.value = "";
+                    }, 0);
+                });
+
+                // Captura Backspace no Android (em alguns teclados o input event não vem bem)
+                this.hiddenInput.addEventListener('keydown', (e) => {
+                    if (e.key === 'Backspace') {
+                        e.stopPropagation(); // Impede que suba para o document
+                        // Se o input estiver vazio, manda backspace manual
+                        if (this.hiddenInput.value.length === 0) {
+                            this.handleInput('BACKSPACE');
+                        }
+                    }
+                    if (e.key === 'Enter') {
+                        e.stopPropagation();
+                        this.handleInput('ENTER');
+                    }
+                });
+            }
 
             this.newWordBtn.addEventListener('click', () => {
                 this.start();
                 this.newWordBtn.blur();
+                this.focusInput();
             });
 
             // Modais e Botões Header
