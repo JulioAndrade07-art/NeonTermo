@@ -43,17 +43,14 @@ Adivinhe a palavra secreta de 5 letras em até 6 tentativas (ou mais, dependendo
 <table>
   <tr>
     <td align="center">
-      <img src="https://via.placeholder.com/150/b026ff/ffffff?text=NEON" alt="Neon Theme" width="150"/><br/>
       <b>🌌 Neon</b><br/>
       <sub>Cyberpunk Futurista</sub>
     </td>
-    <td align="center">
-      <img src="https://via.placeholder.com/150/2e7d32/ffffff?text=NATURE" alt="Nature Theme" width="150"/><br/>
+    <td align="center">  
       <b>🌿 Nature</b><br/>
       <sub>Paleta Natural</sub>
     </td>
     <td align="center">
-      <img src="https://via.placeholder.com/150/ff00ff/ffffff?text=RETRO" alt="Retro Theme" width="150"/><br/>
       <b>🌅 Retro</b><br/>
       <sub>Anos 80 Sunset</sub>
     </td>
@@ -124,7 +121,7 @@ Adivinhe a palavra secreta de 5 letras em até 6 tentativas (ou mais, dependendo
 
 ```bash
 # Clone o repositório
-git clone https://github.com/seu-usuario/neon-termo.git
+git clone https://github.com/JulioAndrade07-art/NeonTermo.git
 
 # Entre na pasta
 cd neon-termo
@@ -135,17 +132,7 @@ open index.html   # macOS
 xdg-open index.html  # Linux
 ```
 
-### Opção 2: Servidor Local
 
-```bash
-# Usando Python
-python -m http.server 8000
-
-# Usando Node.js
-npx http-server
-
-# Acesse http://localhost:8000
-```
 
 ### Requisitos
 - ✅ Navegador moderno (Chrome, Firefox, Safari, Edge)
