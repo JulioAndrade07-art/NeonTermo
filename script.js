@@ -141,8 +141,11 @@ document.addEventListener('DOMContentLoaded', () => {
             this.keyboardDiv = document.getElementById('keyboard');
             this.messageArea = document.getElementById('message-area');
             this.newWordBtn = document.getElementById('new-word-btn');
+<<<<<<< HEAD
             this.dailyWordBtn = document.getElementById('daily-word-btn');
             this.isDailyMode = true; // Padrão Inicial: Diário
+=======
+>>>>>>> origin/main
             this.hiddenInput = document.getElementById('hidden-input'); // Novo input
 
             // Modal Stats
@@ -210,6 +213,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return globalWords[Math.floor(Math.random() * globalWords.length)];
         }
 
+<<<<<<< HEAD
         getDailyWord(index) {
             // Garante data local consistente
             const d = new Date();
@@ -225,6 +229,8 @@ document.addEventListener('DOMContentLoaded', () => {
             return globalWords[positiveHash % globalWords.length];
         }
 
+=======
+>>>>>>> origin/main
         // Foca no input oculto para abrir teclado mobile
         focusInput() {
             if (this.hiddenInput && !this.isModalOpen() && !this.isGameOver) {
@@ -348,7 +354,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (this.hiddenInput) this.hiddenInput.blur(); // Fecha teclado
                 setTimeout(() => {
                     this.showMessage("VITÓRIA! 🏆", true);
+<<<<<<< HEAD
                     this.updateStats(true, this.currentRow + 1);
+=======
+                    this.updateStats(true, this.currentRow + 1); // Passa tentativas usadas
+>>>>>>> origin/main
                     this.showStats();
                 }, 600);
                 return;
@@ -454,6 +464,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // --- Stats ---
 
         getStats() {
+<<<<<<< HEAD
             const saved = localStorage.getItem('termostats_v2');
             let stats = saved ? JSON.parse(saved) : null;
 
@@ -493,6 +504,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
             }
             return stats;
+=======
+            const saved = localStorage.getItem('termostats_v2'); // Mudando chave para evitar conflito com formato antigo
+            return saved ? JSON.parse(saved) : {
+                termo: { played: 0, wins: 0, streak: 0, maxStreak: 0, distribution: [0, 0, 0, 0, 0, 0], failures: 0 },
+                duetto: { played: 0, wins: 0, streak: 0, maxStreak: 0, distribution: [0, 0, 0, 0, 0, 0, 0], failures: 0 }, // Duetto tem 7 chances
+                quarteto: { played: 0, wins: 0, streak: 0, maxStreak: 0, distribution: [0, 0, 0, 0, 0, 0, 0, 0, 0], failures: 0 } // Quarteto tem 9
+            };
+>>>>>>> origin/main
         }
 
         updateStats(isWin, attemptsUsed) {
@@ -501,6 +520,12 @@ document.addEventListener('DOMContentLoaded', () => {
             const modeStats = stats[currentMode][type];
 
             // Garantir que distribution existe (para segurança)
+            if (!modeStats.distribution) {
+                const attemptCount = MODES[currentMode].attempts;
+                modeStats.distribution = new Array(attemptCount).fill(0);
+            }
+
+            // Garantir que distribution existe (para migração)
             if (!modeStats.distribution) {
                 const attemptCount = MODES[currentMode].attempts;
                 modeStats.distribution = new Array(attemptCount).fill(0);
@@ -526,9 +551,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
         showStats() {
             const stats = this.getStats();
+<<<<<<< HEAD
             const type = this.isDailyMode ? 'daily' : 'practice';
             const s = stats[currentMode][type];
             const titleSuffix = this.isDailyMode ? "DIÁRIO" : "TREINO";
+=======
+            const s = stats[currentMode];
+>>>>>>> origin/main
 
             // Safety check para renderização
             if (!s.distribution) {
@@ -541,6 +570,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // Calcular max para barras
             const maxVal = Math.max(...s.distribution, s.failures, 1); // evita div por 0
 
+<<<<<<< HEAD
             // Gerar HTML de resumo Moderno
             let html = `
                 <div class="stats-header">ESTATÍSTICAS - ${titleSuffix}</div>
@@ -579,11 +609,49 @@ document.addEventListener('DOMContentLoaded', () => {
                              <div class="bar-fill ${activeClass}" style="width: ${pct}%">
                                 <span class="bar-value">${count > 0 ? count : ''}</span>
                              </div>
+=======
+            // Gerar HTML de resumo
+            let html = `
+                <h2>Estatísticas</h2>
+                <div class="stats-group">
+                    <div class="stat-box">
+                        <span class="stat-number">${s.played}</span>
+                        <span class="stat-label">jogos</span>
+                    </div>
+                    <div class="stat-box">
+                        <span class="stat-number">${winPct}%</span>
+                        <span class="stat-label">de vitórias</span>
+                    </div>
+                    <div class="stat-box">
+                        <span class="stat-number">${s.streak}</span>
+                        <span class="stat-label">sequência atual</span>
+                    </div>
+                    <div class="stat-box">
+                        <span class="stat-number">${s.maxStreak}</span>
+                        <span class="stat-label">melhor sequência</span>
+                    </div>
+                </div>
+                
+                <h3 class="distribution-title">Distribuição de Vitórias</h3>
+                <div class="distribution-chart">
+            `;
+
+            // Gerar Barras (1 até MaxTentativas)
+            s.distribution.forEach((count, idx) => {
+                const width = Math.max(8, (count / maxVal) * 100);
+                const bgClass = count > 0 ? "filled" : "";
+                html += `
+                    <div class="chart-row">
+                        <span class="chart-label">${idx + 1}</span>
+                        <div class="chart-bar-container">
+                            <div class="chart-bar ${bgClass}" style="width: ${width}%">${count}</div>
+>>>>>>> origin/main
                         </div>
                     </div>
                 `;
             });
 
+<<<<<<< HEAD
             // Caveira
             if (s.failures > 0) {
                 const width = (s.failures / maxVal) * 100;
@@ -594,13 +662,26 @@ document.addEventListener('DOMContentLoaded', () => {
                              <div class="bar-fill fail" style="width: ${width}%">
                                 <span class="bar-value">${s.failures}</span>
                              </div>
+=======
+            // Barra de Falhas (Caveira)
+            if (s.failures > 0) {
+                const width = Math.max(8, (s.failures / maxVal) * 100);
+                html += `
+                    <div class="chart-row">
+                         <span class="chart-label skull-icon">💀</span>
+                         <div class="chart-bar-container">
+                             <div class="chart-bar filled" style="width: ${width}%; background-color: #ff3333;">${s.failures}</div>
+>>>>>>> origin/main
                          </div>
                     </div>
                  `;
             }
 
+<<<<<<< HEAD
             html += `</div>`; // Close chart container
 
+=======
+>>>>>>> origin/main
             html += `</div>`; // Fechar chart-container
 
             this.statsContainer.innerHTML = html;
