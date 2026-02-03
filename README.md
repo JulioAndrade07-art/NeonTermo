@@ -13,7 +13,10 @@
 
 [🎮 Jogar Agora](#-como-jogar) • [✨ Funcionalidades](#-funcionalidades) • [🛠️ Tecnologias](#️-tecnologias) • [📦 Instalação](#-instalação)
 
+<<<<<<< HEAD
 ![Neon Termo Banner](https://via.placeholder.com/800x400/0a0a12/b026ff?text=NEON+TERMO)
+=======
+>>>>>>> f0366ca11b9bba795389d72742538b407d2b89d8
 
 </div>
 
@@ -44,17 +47,27 @@ Adivinhe a palavra secreta de 5 letras em até 6 tentativas (ou mais, dependendo
 <table>
   <tr>
     <td align="center">
+<<<<<<< HEAD
       <img src="https://via.placeholder.com/150/b026ff/ffffff?text=NEON" alt="Neon Theme" width="150"/><br/>
       <b>🌌 Neon</b><br/>
       <sub>Cyberpunk Futurista</sub>
     </td>
     <td align="center">
       <img src="https://via.placeholder.com/150/2e7d32/ffffff?text=NATURE" alt="Nature Theme" width="150"/><br/>
+=======
+      <b>🌌 Neon</b><br/>
+      <sub>Cyberpunk Futurista</sub>
+    </td>
+    <td align="center">  
+>>>>>>> f0366ca11b9bba795389d72742538b407d2b89d8
       <b>🌿 Nature</b><br/>
       <sub>Paleta Natural</sub>
     </td>
     <td align="center">
+<<<<<<< HEAD
       <img src="https://via.placeholder.com/150/ff00ff/ffffff?text=RETRO" alt="Retro Theme" width="150"/><br/>
+=======
+>>>>>>> f0366ca11b9bba795389d72742538b407d2b89d8
       <b>🌅 Retro</b><br/>
       <sub>Anos 80 Sunset</sub>
     </td>
@@ -125,7 +138,11 @@ Adivinhe a palavra secreta de 5 letras em até 6 tentativas (ou mais, dependendo
 
 ```bash
 # Clone o repositório
+<<<<<<< HEAD
 git clone https://github.com/seu-usuario/neon-termo.git
+=======
+git clone https://github.com/JulioAndrade07-art/NeonTermo.git
+>>>>>>> f0366ca11b9bba795389d72742538b407d2b89d8
 
 # Entre na pasta
 cd neon-termo
@@ -136,6 +153,7 @@ open index.html   # macOS
 xdg-open index.html  # Linux
 ```
 
+<<<<<<< HEAD
 ### Opção 2: Servidor Local
 
 ```bash
@@ -147,6 +165,9 @@ npx http-server
 
 # Acesse http://localhost:8000
 ```
+=======
+
+>>>>>>> f0366ca11b9bba795389d72742538b407d2b89d8
 
 ### Requisitos
 - ✅ Navegador moderno (Chrome, Firefox, Safari, Edge)
@@ -371,7 +392,11 @@ Desenvolvido com ❤️ e muito ☕
 ## 🙏 Agradecimentos
 
 - Inspirado no [Wordle](https://www.nytimes.com/games/wordle/index.html) de Josh Wardle
+<<<<<<< HEAD
 - Dicionário português de [br-utf8.txt](https://github.com/fserb/pt-br)
+=======
+- Dicionário português de [br-utf8.txt](https://github.com/fititnt/br.ispell-dicionario-portugues-brasileiro)
+>>>>>>> f0366ca11b9bba795389d72742538b407d2b89d8
 - Fonte [Orbitron](https://fonts.google.com/specimen/Orbitron) por Matt McInerney
 
 ---
