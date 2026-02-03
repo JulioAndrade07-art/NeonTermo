@@ -357,7 +357,7 @@ Desenvolvido com ❤️ e muito ☕
 ## 🙏 Agradecimentos
 
 - Inspirado no [Wordle](https://www.nytimes.com/games/wordle/index.html) de Josh Wardle
-- Dicionário português de [br-utf8.txt](https://github.com/fserb/pt-br)
+- Dicionário português de [br-utf8.txt](https://github.com/fititnt/br.ispell-dicionario-portugues-brasileiro)
 - Fonte [Orbitron](https://fonts.google.com/specimen/Orbitron) por Matt McInerney
 
 ---
