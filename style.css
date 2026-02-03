@@ -191,22 +191,12 @@ header p {
     display: flex;
     flex-direction: column;
     align-items: center;
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
->>>>>>> origin/main
     gap: 10px;
     flex: 1;
     width: 100%;
     max-width: 1200px;
     justify-content: center;
     /* Centraliza verticalmente o tabuleiro */
-<<<<<<< HEAD
-=======
-=======
-    gap: 0.1rem;
->>>>>>> f0366ca11b9bba795389d72742538b407d2b89d8
->>>>>>> origin/main
 }
 
 .game-board-area {
@@ -492,7 +482,6 @@ header p {
     box-shadow: var(--glow-strong) var(--color-primary);
 }
 
-<<<<<<< HEAD
 .btn-neon.active {
     background: var(--color-primary);
     color: #000;
@@ -500,8 +489,6 @@ header p {
     font-weight: bold;
 }
 
-=======
->>>>>>> origin/main
 /* --- Modals --- */
 .modal {
     position: fixed;
@@ -552,7 +539,6 @@ header p {
     color: #fff;
 }
 
-<<<<<<< HEAD
 /* --- Modal Stats (Modern Layout) --- */
 .modal-content {
     background: linear-gradient(135deg, rgba(20, 10, 30, 0.95), rgba(40, 20, 60, 0.95));
@@ -598,41 +584,11 @@ header p {
     color: #fff;
     text-shadow: 0 0 10px var(--color-primary);
     margin-bottom: 4px;
-=======
-/* --- Modal Stats (Novo Layout) --- */
-.modal-content h2 {
-    margin-bottom: 5px;
-    font-size: 1.2rem;
-    color: var(--color-text);
-    text-transform: uppercase;
-    letter-spacing: 2px;
-}
-
-.stats-group {
-    display: flex;
-    justify-content: space-around;
-    margin-bottom: 2rem;
-    text-align: center;
-}
-
-.stat-box {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    width: 60px;
-}
-
-.stat-number {
-    font-size: 1.8rem;
-    font-weight: bold;
-    color: var(--color-text);
->>>>>>> origin/main
 }
 
 .stat-label {
     font-size: 0.7rem;
     color: var(--color-text-dim);
-<<<<<<< HEAD
     text-transform: uppercase;
     letter-spacing: 1px;
 }
@@ -675,67 +631,17 @@ header p {
     border-radius: 4px;
     overflow: hidden;
     position: relative;
-=======
-    line-height: 1.2;
-    margin-top: 5px;
-}
-
-.distribution-title {
-    font-size: 1rem;
-    font-weight: bold;
-    text-transform: uppercase;
-    margin-bottom: 1rem;
-    color: var(--color-text);
-}
-
-.distribution-chart {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    width: 100%;
-    padding: 0 10px;
-}
-
-.chart-row {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    height: 24px;
-}
-
-.chart-label {
-    font-weight: bold;
-    width: 20px;
-    /* Aumentado para melhor alinhamento */
-    text-align: right;
-    color: var(--color-text);
-}
-
-.chart-bar-container {
-    flex: 1;
-    background: transparent;
-    height: 100%;
->>>>>>> origin/main
     display: flex;
     align-items: center;
 }
 
-<<<<<<< HEAD
 .bar-fill {
     height: 100%;
     background-color: #333;
-=======
-.chart-bar {
-    background-color: #333;
-    height: 100%;
-    min-width: 8%;
-    /* Espaço mínimo para o texto caber */
->>>>>>> origin/main
     display: flex;
     justify-content: flex-end;
     align-items: center;
     padding-right: 8px;
-<<<<<<< HEAD
     min-width: 0;
     transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -755,28 +661,6 @@ header p {
     font-weight: bold;
     font-size: 0.85rem;
     z-index: 2;
-=======
-    font-weight: bold;
-    color: #fff;
-    font-size: 0.9rem;
-    transition: width 0.8s ease-out;
-}
-
-.chart-bar.filled {
-    background-color: var(--color-primary);
-    /* Neon Purple bars (ou Neon Blue se preferir) */
-    box-shadow: var(--glow-weak) var(--color-primary);
-}
-
-.chart-bar.highlight {
-    background-color: var(--color-correct);
-    /* Destaque para a tentativa atual (verde) se quiser */
-}
-
-/* Opcional: Estilo para linha de falha (caveira) */
-.skull-icon {
-    font-size: 1.1rem;
->>>>>>> origin/main
 }
 
 .help-content {
@@ -854,10 +738,6 @@ body.theme-retro header h1 {
     -webkit-text-stroke: 1px #fff;
     text-shadow: 3px 3px 0px var(--color-primary);
 }
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
->>>>>>> origin/main
 
 /* --- Media Query Hacks Específicos (Safety nets) --- */
 @media (max-height: 600px) {
@@ -888,10 +768,4 @@ body.theme-retro header h1 {
     .key {
         height: 35px;
     }
-<<<<<<< HEAD
 }
-=======
-}
-=======
->>>>>>> f0366ca11b9bba795389d72742538b407d2b89d8
->>>>>>> origin/main
