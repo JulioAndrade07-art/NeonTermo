@@ -42,6 +42,14 @@ document.addEventListener('DOMContentLoaded', () => {
                     cell.className = 'cell';
                     cell.dataset.row = r;
                     cell.dataset.col = c;
+
+                    // Click para focar
+                    const colIndex = c;
+                    cell.addEventListener('click', (e) => {
+                        e.stopPropagation(); // Evita bolha indesejada
+                        this.controller.setCursor(colIndex);
+                    });
+
                     row.appendChild(cell);
                 }
                 container.appendChild(row);
@@ -124,7 +132,7 @@ document.addEventListener('DOMContentLoaded', () => {
         constructor() {
             this.activeBoards = [];
             this.currentRow = 0;
-            this.currentGuess = new Array(5).fill(""); // Buffer agora é array
+            this.currentGuess = new Array(5).fill("");
             this.cursorCol = 0;
             this.isGameOver = false;
 
@@ -133,6 +141,9 @@ document.addEventListener('DOMContentLoaded', () => {
             this.keyboardDiv = document.getElementById('keyboard');
             this.messageArea = document.getElementById('message-area');
             this.newWordBtn = document.getElementById('new-word-btn');
+            this.dailyWordBtn = document.getElementById('daily-word-btn');
+            this.isDailyMode = true; // Padrão Inicial: Diário
+            this.hiddenInput = document.getElementById('hidden-input'); // Novo input
 
             // Modal Stats
             this.statsModal = document.getElementById('stats-modal');
@@ -151,18 +162,32 @@ document.addEventListener('DOMContentLoaded', () => {
             this.reset();
             const config = MODES[currentMode];
             this.boardArea.className = `game-board-area ${config.containerClass}`;
-            if (currentMode === 'quarteto') this.boardArea.classList.add('grid-quarteto'); // Auxiliar layout
+            if (currentMode === 'quarteto') this.boardArea.classList.add('grid-quarteto');
 
             // Criar Boards
+            // Offsets para garantir palavras diferentes em cada modo no dia
+            const modeOffsets = {
+                termo: 0,
+                duetto: 1,
+                quarteto: 3
+            };
+            const baseOffset = modeOffsets[currentMode] || 0;
+
             for (let i = 0; i < config.grids; i++) {
-                const secretWord = this.getRandomWord();
+                let secretWord;
+                if (this.isDailyMode) {
+                    secretWord = this.getDailyWord(baseOffset + i);
+                } else {
+                    secretWord = this.getRandomWord();
+                }
                 const board = new TermoBoard(i, secretWord, config.attempts, this);
                 this.activeBoards.push(board);
                 this.boardArea.appendChild(board.element);
-                console.log(`Board ${i} Target: ${secretWord}`); // Debug
+                console.log(`Board ${i} Target: ${secretWord}`);
             }
 
             this.renderKeyboard();
+            this.focusInput();
         }
 
         reset() {
@@ -175,14 +200,53 @@ document.addEventListener('DOMContentLoaded', () => {
             this.messageArea.textContent = "";
             this.attemptsHistory = new Set();
             this.closeStats();
+            if (this.hiddenInput) {
+                this.hiddenInput.value = "";
+                this.hiddenInput.blur();
+            }
         }
 
         getRandomWord() {
             return globalWords[Math.floor(Math.random() * globalWords.length)];
         }
 
+        getDailyWord(index) {
+            // Garante data local consistente
+            const d = new Date();
+            const dateStr = `${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear()}`;
+            const seedStr = `${dateStr}-${index}-NEON-TERMO`;
+
+            let hash = 0;
+            for (let i = 0; i < seedStr.length; i++) {
+                hash = ((hash << 5) - hash) + seedStr.charCodeAt(i);
+                hash |= 0;
+            }
+            const positiveHash = Math.abs(hash);
+            return globalWords[positiveHash % globalWords.length];
+        }
+
+        // Foca no input oculto para abrir teclado mobile
+        focusInput() {
+            if (this.hiddenInput && !this.isModalOpen() && !this.isGameOver) {
+                this.hiddenInput.focus({ preventScroll: true });
+            }
+        }
+
+        // Define a coluna ativa baseado no clique
+        setCursor(colIndex) {
+            if (this.isGameOver) return;
+
+            // Permite navegar para qualquer coluna
+            if (colIndex >= 0 && colIndex < 5) {
+                this.cursorCol = colIndex;
+                this.updateAllBoardsActiveRow();
+                this.focusInput();
+            }
+        }
+
         handleInput(key) {
             if (this.isGameOver) return;
+            key = key.toUpperCase();
 
             if (key === 'ENTER') {
                 this.submitRow();
@@ -191,8 +255,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (key === 'BACKSPACE') {
                 if (this.currentGuess[this.cursorCol]) {
+                    // Se tem letra, apaga
                     this.currentGuess[this.cursorCol] = "";
                 } else if (this.cursorCol > 0) {
+                    // Se vazio e não é a primeira, volta e apaga
                     this.cursorCol--;
                     this.currentGuess[this.cursorCol] = "";
                 }
@@ -201,18 +267,12 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             if (key === 'ARROWLEFT') {
-                if (this.cursorCol > 0) {
-                    this.cursorCol--;
-                    this.updateAllBoardsActiveRow();
-                }
+                if (this.cursorCol > 0) this.setCursor(this.cursorCol - 1);
                 return;
             }
 
             if (key === 'ARROWRIGHT') {
-                if (this.cursorCol < 4) {
-                    this.cursorCol++;
-                    this.updateAllBoardsActiveRow();
-                }
+                if (this.cursorCol < 4) this.setCursor(this.cursorCol + 1);
                 return;
             }
 
@@ -234,44 +294,38 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         submitRow() {
-            // Converte array para string para validação
             const guessStr = this.currentGuess.join("");
 
             if (guessStr.length !== 5 || this.currentGuess.includes("")) {
                 this.showMessage("DIGITE 5 LETRAS");
+                this.focusInput(); // Mantém foco
                 return;
             }
 
-            // Normalização para aceitar palavras sem acento
             const normalize = (str) => str.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
             const normalizedGuess = normalize(guessStr);
-
-            // Tenta encontrar a palavra na lista original (com ou sem acento)
-            // A busca compara a versão normalizada da lista com a entrada normalizada
             const targetWord = globalWords.find(w => normalize(w) === normalizedGuess);
 
             if (!targetWord) {
                 this.showMessage("PALAVRA INEXISTENTE");
+                this.focusInput();
                 return;
             }
 
-            // Se encontrou, atualiza o palpite atual com a palavra correta (acentuada)
-            // Isso garante que os acentos apareçam no tabuleiro
             if (targetWord !== guessStr) {
                 this.currentGuess = targetWord.split("");
-                this.updateAllBoardsActiveRow(); // Atualiza visualmente imediatamente
+                this.updateAllBoardsActiveRow();
             }
 
-            // Usa a palavra alvo correta para a lógica de jogo
             const finalGuessStr = targetWord;
 
             if (this.attemptsHistory.has(finalGuessStr)) {
                 this.showMessage("PALAVRA JÁ UTILIZADA");
+                this.focusInput();
                 return;
             }
             this.attemptsHistory.add(finalGuessStr);
 
-            // Coletar resultados de todos os boards ativos
             const turnResults = [];
             let allSolved = true;
 
@@ -279,24 +333,22 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (!board.isSolved) {
                     const result = board.submitGuess(finalGuessStr);
                     if (result) {
-                        turnResults.push(...result); // Coleta status de cada letra
+                        turnResults.push(...result);
                     }
                     if (!board.isSolved) allSolved = false;
                 }
             });
 
-            // Atualizar Teclado (Melhor status entre todos os boards ativos)
-            // Espera animação (500ms)
             setTimeout(() => {
                 this.updateKeyboard(turnResults);
             }, 500);
 
-            // Checar Fim de Jogo
             if (allSolved) {
                 this.isGameOver = true;
+                if (this.hiddenInput) this.hiddenInput.blur(); // Fecha teclado
                 setTimeout(() => {
                     this.showMessage("VITÓRIA! 🏆", true);
-                    this.updateStats(true);
+                    this.updateStats(true, this.currentRow + 1);
                     this.showStats();
                 }, 600);
                 return;
@@ -307,8 +359,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (this.currentRow >= maxAttempts) {
                 this.isGameOver = true;
+                if (this.hiddenInput) this.hiddenInput.blur();
                 setTimeout(() => {
-                    // Revelar palavras não resolvidas
                     const failedWords = this.activeBoards
                         .filter(b => !b.isSolved)
                         .map(b => b.secretWord)
@@ -320,7 +372,8 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                 this.currentGuess = new Array(5).fill("");
                 this.cursorCol = 0;
-                // Foca na próxima linha (se o board não estiver resolvido, updateActiveRow lidará com isso)
+                this.updateAllBoardsActiveRow(); // Limpa visual da nova linha
+                this.focusInput(); // Mantém teclado
             }
         }
 
@@ -401,53 +454,156 @@ document.addEventListener('DOMContentLoaded', () => {
         // --- Stats ---
 
         getStats() {
-            const saved = localStorage.getItem('termostats');
-            return saved ? JSON.parse(saved) : {
-                termo: { played: 0, wins: 0, streak: 0, maxStreak: 0 },
-                duetto: { played: 0, wins: 0, streak: 0, maxStreak: 0 },
-                quarteto: { played: 0, wins: 0, streak: 0, maxStreak: 0 }
-            };
+            const saved = localStorage.getItem('termostats_v2');
+            let stats = saved ? JSON.parse(saved) : null;
+
+            // Template vazio para uma categoria (daily/practice)
+            const createEmptyStats = (attempts) => ({
+                played: 0, wins: 0, streak: 0, maxStreak: 0,
+                distribution: new Array(attempts).fill(0), failures: 0
+            });
+
+            // Se não existir ou precisar migrar
+            if (!stats) {
+                stats = {
+                    termo: { daily: createEmptyStats(6), practice: createEmptyStats(6) },
+                    duetto: { daily: createEmptyStats(7), practice: createEmptyStats(7) },
+                    quarteto: { daily: createEmptyStats(9), practice: createEmptyStats(9) }
+                };
+            } else {
+                // Migração: Se stats.termo.played existir, é o formato antigo (apenas daily)
+                // Vamos mover para .daily e criar .practice vazio
+                ['termo', 'duetto', 'quarteto'].forEach(mode => {
+                    if (stats[mode].played !== undefined) {
+                        // É formato antigo
+                        const oldData = { ...stats[mode] };
+                        // Garante distribution (migração anterior)
+                        if (!oldData.distribution) {
+                            oldData.distribution = new Array(MODES[mode].attempts).fill(0);
+                        }
+
+                        stats[mode] = {
+                            daily: oldData,
+                            practice: createEmptyStats(MODES[mode].attempts)
+                        };
+                    }
+                    // Garante que ambos existam (caso tenha sido criado parcialmente)
+                    if (!stats[mode].daily) stats[mode].daily = createEmptyStats(MODES[mode].attempts);
+                    if (!stats[mode].practice) stats[mode].practice = createEmptyStats(MODES[mode].attempts);
+                });
+            }
+            return stats;
         }
 
-        updateStats(isWin) {
+        updateStats(isWin, attemptsUsed) {
             const stats = this.getStats();
-            const modeStats = stats[currentMode];
+            const type = this.isDailyMode ? 'daily' : 'practice';
+            const modeStats = stats[currentMode][type];
+
+            // Garantir que distribution existe (para segurança)
+            if (!modeStats.distribution) {
+                const attemptCount = MODES[currentMode].attempts;
+                modeStats.distribution = new Array(attemptCount).fill(0);
+            }
 
             modeStats.played++;
             if (isWin) {
                 modeStats.wins++;
                 modeStats.streak++;
                 if (modeStats.streak > modeStats.maxStreak) modeStats.maxStreak = modeStats.streak;
+
+                // Distribuição (attemptsUsed é 1-indexed)
+                if (attemptsUsed > 0 && attemptsUsed <= modeStats.distribution.length) {
+                    modeStats.distribution[attemptsUsed - 1]++;
+                }
             } else {
                 modeStats.streak = 0;
+                modeStats.failures++;
             }
 
-            localStorage.setItem('termostats', JSON.stringify(stats));
+            localStorage.setItem('termostats_v2', JSON.stringify(stats));
         }
 
         showStats() {
             const stats = this.getStats();
-            const s = stats[currentMode];
+            const type = this.isDailyMode ? 'daily' : 'practice';
+            const s = stats[currentMode][type];
+            const titleSuffix = this.isDailyMode ? "DIÁRIO" : "TREINO";
+
+            // Safety check para renderização
+            if (!s.distribution) {
+                const attemptCount = MODES[currentMode].attempts;
+                s.distribution = new Array(attemptCount).fill(0);
+            }
+
             const winPct = s.played === 0 ? 0 : Math.round((s.wins / s.played) * 100);
 
-            this.statsContainer.innerHTML = `
-                <div class="stat-item">
-                    <span class="stat-value">${s.played}</span>
-                    <span class="stat-label">JOGOS</span>
+            // Calcular max para barras
+            const maxVal = Math.max(...s.distribution, s.failures, 1); // evita div por 0
+
+            // Gerar HTML de resumo Moderno
+            let html = `
+                <div class="stats-header">ESTATÍSTICAS - ${titleSuffix}</div>
+                <div class="stats-grid-modern">
+                    <div class="stat-card">
+                        <div class="stat-value">${s.played}</div>
+                        <div class="stat-label">Jogos</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">${winPct}%</div>
+                        <div class="stat-label">Vitórias</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">${s.streak}</div>
+                        <div class="stat-label">Sequência</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">${s.maxStreak}</div>
+                        <div class="stat-label">Melhor Seq.</div>
+                    </div>
                 </div>
-                <div class="stat-item">
-                    <span class="stat-value">${winPct}%</span>
-                    <span class="stat-label">% VITÓRIAS</span>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-value">${s.streak}</span>
-                    <span class="stat-label">SEQUÊNCIA</span>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-value">${s.maxStreak}</span>
-                    <span class="stat-label">MELHOR SEQ.</span>
-                </div>
+                
+                <div class="chart-container-modern">
+                    <div class="chart-title">DISTRIBUIÇÃO DE TENTATIVAS</div>
             `;
+
+            // Gerar Barras
+            s.distribution.forEach((count, idx) => {
+                const width = Math.max(0, (count / maxVal) * 100); // 0 se count 0? melhor deixar minimo visual se tiver
+                const pct = width === 0 ? 0 : width;
+                const activeClass = count > 0 ? 'active' : '';
+                html += `
+                    <div class="bar-row">
+                        <div class="bar-label">${idx + 1}</div>
+                        <div class="bar-track">
+                             <div class="bar-fill ${activeClass}" style="width: ${pct}%">
+                                <span class="bar-value">${count > 0 ? count : ''}</span>
+                             </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            // Caveira
+            if (s.failures > 0) {
+                const width = (s.failures / maxVal) * 100;
+                html += `
+                    <div class="bar-row">
+                         <div class="bar-label">💀</div>
+                         <div class="bar-track">
+                             <div class="bar-fill fail" style="width: ${width}%">
+                                <span class="bar-value">${s.failures}</span>
+                             </div>
+                         </div>
+                    </div>
+                 `;
+            }
+
+            html += `</div>`; // Close chart container
+
+            html += `</div>`; // Fechar chart-container
+
+            this.statsContainer.innerHTML = html;
             this.statsModal.classList.remove('hidden');
         }
 
@@ -491,18 +647,85 @@ document.addEventListener('DOMContentLoaded', () => {
                     return;
                 }
 
-                if (this.isModalOpen()) return; // Bloqueia input se modal aberto
+                if (this.isModalOpen()) return;
 
+                // Atalhos de teclado físico
                 if (key === 'ARROWLEFT' || key === 'ARROWRIGHT') {
                     this.handleInput(key);
-                } else if (key.length === 1 && key >= 'A' && key <= 'Z') this.handleInput(key);
-                else if (key === 'BACKSPACE' || key === 'ENTER') this.handleInput(key);
+                } else if (key.length === 1 && key >= 'A' && key <= 'Z') {
+                    // SE o input oculto estiver focado, deixa o evento 'input' lidar com isso
+                    // para evitar duplicidade. Se NÃO estiver focado, trata aqui.
+                    if (document.activeElement !== this.hiddenInput) {
+                        this.handleInput(key);
+                        this.focusInput();
+                    }
+                }
+                else if (key === 'BACKSPACE' || key === 'ENTER') {
+                    if (document.activeElement !== this.hiddenInput) {
+                        this.handleInput(key);
+                        this.focusInput();
+                    }
+                }
             });
 
+            // Input Oculto (Mobile)
+            if (this.hiddenInput) {
+                this.hiddenInput.addEventListener('input', (e) => {
+                    e.preventDefault();
+                    if (this.isModalOpen() || this.isGameOver) {
+                        this.hiddenInput.value = "";
+                        return;
+                    }
+
+                    const val = (e.data || this.hiddenInput.value).toUpperCase();
+                    // Processa último char digitado
+                    if (val && val.length > 0) {
+                        const char = val.slice(-1); // Pega último
+                        if (/[A-Z]/.test(char)) {
+                            this.handleInput(char);
+                        }
+                    }
+
+                    // Limpa buffer
+                    setTimeout(() => {
+                        this.hiddenInput.value = "";
+                    }, 0);
+                });
+
+                // Captura Backspace no Android (em alguns teclados o input event não vem bem)
+                this.hiddenInput.addEventListener('keydown', (e) => {
+                    if (e.key === 'Backspace') {
+                        e.stopPropagation(); // Impede que suba para o document
+                        // Se o input estiver vazio, manda backspace manual
+                        if (this.hiddenInput.value.length === 0) {
+                            this.handleInput('BACKSPACE');
+                        }
+                    }
+                    if (e.key === 'Enter') {
+                        e.stopPropagation();
+                        this.handleInput('ENTER');
+                    }
+                });
+            }
+
             this.newWordBtn.addEventListener('click', () => {
+                this.isDailyMode = false;
+                this.updateButtonsState();
                 this.start();
                 this.newWordBtn.blur();
+                this.focusInput();
             });
+
+            this.dailyWordBtn.addEventListener('click', () => {
+                this.isDailyMode = true;
+                this.updateButtonsState();
+                this.start();
+                this.dailyWordBtn.blur();
+                this.focusInput();
+            });
+
+            // Set initial state visual
+            this.updateButtonsState();
 
             // Modais e Botões Header
             const helpBtn = document.getElementById('help-btn');
@@ -557,6 +780,20 @@ document.addEventListener('DOMContentLoaded', () => {
             const nextTheme = themes[nextIndex];
             document.body.className = nextTheme;
             localStorage.setItem('termotheme', nextTheme);
+        }
+
+        updateButtonsState() {
+            if (this.isDailyMode) {
+                this.dailyWordBtn.classList.add('active');
+                this.newWordBtn.classList.remove('active');
+                this.newWordBtn.textContent = "MODO TREINO";
+                this.dailyWordBtn.textContent = "JOGO DIÁRIO";
+            } else {
+                this.dailyWordBtn.classList.remove('active');
+                this.newWordBtn.classList.add('active');
+                this.newWordBtn.textContent = "NOVA PALAVRA";
+                this.dailyWordBtn.textContent = "PALAVRA DO DIA";
+            }
         }
 
         closeHelp() {

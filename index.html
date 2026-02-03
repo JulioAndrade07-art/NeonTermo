@@ -13,6 +13,10 @@
 
 <body>
 
+    <!-- Input Oculto para Teclado Mobile -->
+    <input type="text" id="hidden-input"
+        style="opacity: 0; position: absolute; pointer-events: none; height: 0; width: 0;" autocomplete="off">
+
     <header>
         <div class="header-top">
             <button id="help-btn" class="icon-btn" title="Ajuda">?</button>
@@ -40,6 +44,7 @@
         </div>
 
         <div class="controls">
+            <button id="daily-word-btn" class="btn-neon" style="margin-right: 10px;">PALAVRA DO DIA</button>
             <button id="new-word-btn" class="btn-neon">NOVA PALAVRA</button>
         </div>
 
@@ -49,7 +54,6 @@
     <div id="stats-modal" class="modal hidden">
         <div class="modal-content">
             <span id="close-stats" class="close-btn">&times;</span>
-            <h2>ESTATÍSTICAS</h2>
             <div id="stats-container" class="stats-grid">
                 <!-- Injetado via JS -->
             </div>
