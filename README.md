@@ -13,7 +13,6 @@
 
 [🎮 Jogar Agora](#-como-jogar) • [✨ Funcionalidades](#-funcionalidades) • [🛠️ Tecnologias](#️-tecnologias) • [📦 Instalação](#-instalação)
 
-![Neon Termo Banner](https://via.placeholder.com/800x400/0a0a12/b026ff?text=NEON+TERMO)
 
 </div>
 
