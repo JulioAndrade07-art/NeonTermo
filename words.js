@@ -4926,6 +4926,7 @@ const wordsList = [
 "SELVA",
 "SEMEÁ",
 "SÊMEN",
+"SENAI",
 "SENÃO",
 "SENDA",
 "SENDO",
