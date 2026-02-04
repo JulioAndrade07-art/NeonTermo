@@ -316,7 +316,7 @@ Garante que letras corretas sempre apareçam verdes no teclado.
 ## 🚀 Roadmap
 
 - [ ] 🏆 Sistema de conquistas
-- [ ] 📅 Modo palavra do dia
+- [x] 📅 Modo palavra do dia
 - [ ] 👥 Modo multiplayer
 - [ ] 🎵 Efeitos sonoros
 - [ ] 📤 Compartilhamento de resultados
