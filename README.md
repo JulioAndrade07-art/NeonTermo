@@ -11,7 +11,7 @@
 
 **Um clone moderno e estilizado do Wordle/Termo com estética cyberpunk neon, múltiplos modos de jogo e temas visuais dinâmicos.**
 
-[🎮 Jogar Agora](#-como-jogar) • [✨ Funcionalidades](#-funcionalidades) • [🛠️ Tecnologias](#️-tecnologias) • [📦 Instalação](#-instalação)
+[🎮 Jogar Agora](https://julioandrade07-art.github.io/NeonTermo/) • [✨ Funcionalidades](#-funcionalidades) • [🛠️ Tecnologias](#️-tecnologias) • [📦 Instalação](#-instalação)
 
 
 </div>
